@@ -223,6 +223,8 @@
       border-radius: 10px; background: #e05c3a; color: #fff; cursor: pointer; margin-top: 4px;
     }
     .lock-btn:active { opacity: .85; }
+    .lock-alt { margin: 14px 0 0; font-size: 12px; }
+    .lock-alt a { color: #b09a72; text-decoration: none; }
     body.is-locked .app { display: none; }
     #cloud-state.cloud-err { color: #c0392b; }
 
@@ -331,6 +333,7 @@
       <label class="lock-remember"><input type="checkbox" id="lock-remember">在此设备记住</label>
       <p class="lock-err" id="lock-err"></p>
       <button type="button" class="lock-btn" id="lock-ok">解 锁</button>
+      <p class="lock-alt"><a href="javascript:void(0)" id="lock-reset">重置同步配置</a></p>
     </div>
   </div>
 
@@ -696,9 +699,13 @@
       }
 
       /* === 持久化 === */
+      function persist() {
+        try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+      }
+
       function save() {
         state.updated = Date.now();
-        try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+        persist();
         var el = document.getElementById('save-state');
         if (el) {
           var n = new Date();
@@ -1059,7 +1066,7 @@
         document.getElementById('lock-mask').hidden = true;
         document.body.classList.remove('is-locked');
         mergeCloud();
-        save();
+        persist();
         render();
         setCloudState(cloudEmpty ? '云端暂无数据，编辑后将自动上传' : '已从云端同步');
         if (dirtyLocal) schedulePush();
@@ -1113,7 +1120,7 @@
             return;
           }
           state.syncedAt = Date.now();
-          try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+          persist();
           setCloudState('已同步到云端 ' + new Date().toLocaleTimeString());
         } catch (e) {
           setCloudState('同步失败（网络异常）', true);
@@ -1145,6 +1152,11 @@
       document.getElementById('lock-pass').addEventListener('keydown', function (e) {
         if (e.key === 'Enter') doLockUnlock();
       });
+      document.getElementById('lock-reset').addEventListener('click', function () {
+        if (!confirm('清除本设备的云同步配置？云端数据不受影响。')) return;
+        writeCfg(null);
+        location.reload();
+      });
 
       document.getElementById('btn-cloud').addEventListener('click', function () {
         var c = cfg || {};
@@ -1171,35 +1183,35 @@
         try {
           var chk = await gh('GET', '/repos/' + encodeURIComponent(owner) + '/' + encodeURIComponent(repo), null, useToken);
           if (!chk.ok) { errEl.textContent = '令牌无法访问该仓库（' + chk.status + '）'; return; }
-          var next = { owner: owner, repo: repo, branch: branch, token: useToken };
-          if (cfg && cfg.pass && !pass) pass = cfg.pass;
           var r = await gh('GET', '/repos/' + encodeURIComponent(owner) + '/' + encodeURIComponent(repo) +
             '/contents/data.json?ref=' + encodeURIComponent(branch) + '&_=' + Date.now(), null, useToken);
+          var pulled = null, pulledAt = 0, isEmpty = false;
           if (r.ok) {
-            try {
-              var obj = JSON.parse(new TextDecoder().decode(b64ToU8(r.data.content)));
-              await decryptJSON(obj.enc, pass);
-            } catch (e) { errEl.textContent = '密码与云端数据不匹配'; return; }
-          } else if (r.status !== 404) {
+            var obj;
+            try { obj = JSON.parse(new TextDecoder().decode(b64ToU8(r.data.content))); }
+            catch (e) { errEl.textContent = '云端数据格式异常'; return; }
+            try { pulled = await decryptJSON(obj.enc, pass); }
+            catch (e) { errEl.textContent = '密码与云端数据不匹配'; return; }
+            pulledAt = Date.parse(obj.updated) || 0;
+          } else if (r.status === 404) {
+            isEmpty = true;
+          } else {
             errEl.textContent = '读取云端数据异常（' + r.status + '）';
             return;
           }
-          var remember = cfg && cfg.pass;
-          cfg = next;
-          if (remember) cfg.pass = pass;
+          cfg = { owner: owner, repo: repo, branch: branch, token: useToken, pass: pass };
           writeCfg(cfg);
           cloudPass = pass;
-          cloudState = null; cloudUpdated = 0; cloudEmpty = (r.status === 404);
+          cloudState = pulled; cloudUpdated = pulledAt; cloudEmpty = isEmpty;
           document.getElementById('cloud-mask').hidden = true;
-          setCloudState(cloudEmpty ? '云端暂无数据，正在上传…' : '配置成功');
-          pushCloud(false);
+          enterApp();
         } catch (e) {
           errEl.textContent = '网络异常，请重试';
         }
       });
 
       document.getElementById('cloud-now').addEventListener('click', function () {
-        if (!cfg || !cfg.token || !cloudPass) { document.getElementById('cf-err').textContent = '尚未配置或未解锁'; return; }
+        if (!cfg || !cfg.token || !cloudPass) { document.getElementById('cf-err').textContent = '请先点「保存并验证」完成配置'; return; }
         setCloudState('同步中…');
         pushCloud(false);
       });
