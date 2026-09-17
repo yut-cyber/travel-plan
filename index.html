@@ -1,1049 +1,156 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>旅行计划表</title>
+  <title>登录 · Nimbus</title>
   <style>
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     html { -webkit-text-size-adjust: 100%; }
     body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-      background: #f5f2ec;
-      color: #26313d;
-      line-height: 1.5;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(160deg, #1f2733 0%, #2c3a4d 55%, #384a60 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 24px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+      color: #e8edf4;
       -webkit-tap-highlight-color: transparent;
     }
-    .app { max-width: 620px; margin: 0 auto; padding: 20px 16px 48px; }
-
-    /* === 顶栏 === */
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-    .topbar h1 { margin: 0; font-size: 20px; letter-spacing: .5px; }
-    .topbar-actions { display: flex; gap: 8px; }
-    .ghost-btn { font: inherit; font-size: 13px; color: #5b6672; background: #fff; border: 1px solid #e3ddd0; border-radius: 999px; padding: 5px 14px; cursor: pointer; }
-    .ghost-btn:hover { border-color: #cfc6b3; color: #26313d; }
-    .ghost-btn--danger { color: #b05252; }
-
-    /* === 预算总览 === */
-    .hero {
-      background: #fff; border-radius: 18px; padding: 20px 20px 16px;
-      box-shadow: 0 2px 10px rgba(48, 42, 28, .06); margin-bottom: 24px;
+    .clock {
+      font-size: 13px; letter-spacing: 2px; color: #8fa1b8;
+      margin-bottom: 28px; user-select: none; font-variant-numeric: tabular-nums;
     }
-    .hero__row { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
-    .hero__label { margin: 0 0 2px; font-size: 12px; color: #93836b; letter-spacing: 1px; }
-    .hero__remain { margin: 0; font-size: 36px; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .hero__remain.is-neg { color: #d64545; }
-    .hero__budget { text-align: right; }
-    .hero__budget-num { margin: 0; font-size: 19px; font-weight: 600; font-variant-numeric: tabular-nums; }
-    #h-budget { display: inline-block; min-width: 56px; padding: 2px 6px; border-radius: 8px; }
-    #h-budget:empty::before { content: attr(data-placeholder); color: #b8ad98; font-weight: 400; }
-    .bar { margin-top: 14px; height: 8px; border-radius: 999px; background: #efe9dc; overflow: hidden; }
-    .bar__fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #ef9a5a, #e05c3a); transition: width .35s ease; }
-    .bar__fill.is-over { background: #d64545; }
-    .hero__meta { margin: 8px 0 0; font-size: 12.5px; color: #8a8070; }
-    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-    .chip {
-      display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: #5b6672;
-      background: #f7f4ec; border: 1px solid #eae4d5; border-radius: 999px; padding: 3px 11px;
-      font-variant-numeric: tabular-nums;
+    .card {
+      width: 100%; max-width: 350px;
+      background: rgba(255, 255, 255, .06);
+      border: 1px solid rgba(255, 255, 255, .1);
+      border-radius: 18px;
+      padding: 34px 30px 28px;
+      backdrop-filter: blur(8px);
     }
-    .chip .dot { width: 8px; height: 8px; border-radius: 50%; }
-    .chip strong { color: #26313d; }
-    .chip--warn { border-color: #eccf9a; background: #fdf6e7; color: #9a7325; }
-    .chip--warn strong { color: #9a7325; }
-    .h-payers { border-top: 1px dashed #e6dfd0; margin-top: 14px; padding-top: 10px; }
-    .h-payers:empty { display: none; }
-    .payer-title { margin: 0 0 8px; font-size: 12px; color: #93836b; letter-spacing: 1px; }
-
-    /* === 按天时间轴 === */
-    .day { margin-bottom: 26px; }
-    .day__head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 0 2px; }
-    .day__no {
-      font-size: 11.5px; font-weight: 600; color: #e05c3a; background: #fdeae3;
-      border-radius: 999px; padding: 2px 10px; letter-spacing: .5px; white-space: nowrap;
+    .logo {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: linear-gradient(135deg, #5b8def, #7d6bf0);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; font-weight: 700; color: #fff; margin: 0 auto 18px;
     }
-    .day__date { font-size: 16.5px; font-weight: 700; min-width: 60px; padding: 1px 6px; border-radius: 8px; }
-    .day__date:empty::before { content: attr(data-placeholder); color: #b8ad98; font-weight: 400; }
-    .day__spent { margin-left: auto; font-size: 13px; color: #a4761f; font-variant-numeric: tabular-nums; white-space: nowrap; }
-    .day-del { border: none; background: none; color: #c4bba8; font-size: 17px; cursor: pointer; padding: 0 2px; line-height: 1; }
-    .day-del:hover { color: #d64545; }
-
-    .day__body { position: relative; padding-left: 34px; }
-    .day__body::before { content: ''; position: absolute; left: 11px; top: 8px; bottom: 8px; border-left: 2px dashed #ddd5c4; }
-
-    .item {
-      position: relative; background: #fff; border-radius: 14px; padding: 10px 14px 11px;
-      margin-bottom: 10px; box-shadow: 0 1px 4px rgba(48, 42, 28, .06);
+    h1 { font-size: 20px; text-align: center; font-weight: 600; letter-spacing: 1px; }
+    .sub { font-size: 13px; color: #93a5bd; text-align: center; margin: 6px 0 26px; }
+    form { display: flex; flex-direction: column; gap: 14px; }
+    label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #a8b8cd; }
+    input {
+      font: inherit; font-size: 16px; padding: 11px 14px;
+      background: rgba(255, 255, 255, .07);
+      border: 1px solid rgba(255, 255, 255, .14);
+      border-radius: 10px; color: #e8edf4; outline: none;
+      transition: border-color .15s;
     }
-    .item::before {
-      position: absolute; left: -29px; top: 12px; width: 24px; height: 24px; border-radius: 50%;
-      background: #fff; border: 2px solid #d8d1c0; display: flex; align-items: center; justify-content: center;
-      font-size: 11px; line-height: 1; content: '📍';
+    input:focus { border-color: #5b8def; }
+    input::placeholder { color: #63748c; }
+    .row { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; }
+    .chk { flex-direction: row; align-items: center; gap: 6px; display: flex; color: #93a5bd; cursor: pointer; }
+    .chk input { width: auto; }
+    a { color: #7ea4e8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .err {
+      font-size: 13px; color: #ff8f7a; text-align: center; min-height: 1.2em;
     }
-    .item[data-kind="车票"]::before { content: '🚅'; border-color: #b9cef5; }
-    .item[data-kind="酒店"]::before { content: '🏨'; border-color: #a9dcc0; }
-    .item[data-kind="花费"]::before { content: '💰'; border-color: #f0d49a; }
-
-    .item__top { display: flex; align-items: center; gap: 8px; }
-    .kind-sel {
-      font: inherit; font-size: 12px; border-radius: 999px; padding: 2px 9px;
-      border: 1.5px solid #d8d1c0; background: transparent; color: #7c848e; cursor: pointer;
+    .btn {
+      font: inherit; font-size: 15px; font-weight: 600; letter-spacing: 6px; text-indent: 6px;
+      padding: 12px; border: none; border-radius: 10px; cursor: pointer;
+      background: linear-gradient(135deg, #4d7fe0, #6a5ce8); color: #fff;
+      transition: opacity .15s, transform .1s;
     }
-    .item[data-kind="车票"] .kind-sel { color: #2f6fed; border-color: #2f6fed; background: #eef3fe; }
-    .item[data-kind="酒店"] .kind-sel { color: #23855c; border-color: #23855c; background: #ebf7f0; }
-    .item[data-kind="花费"] .kind-sel { color: #c07c10; border-color: #c07c10; background: #fbf3e2; }
-
-    .slot-btn {
-      font: inherit; font-size: 12.5px; color: #7c848e; background: #f4f0e6;
-      border: 1px solid #e3dcc9; border-radius: 8px; padding: 2px 8px; cursor: pointer;
-      max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
-    .slot-btn:hover { border-color: #cfc6ae; color: #26313d; }
-    .slot-btn.is-empty { color: #b3a98f; border-style: dashed; background: none; }
-
-    .slot-panel {
-      position: absolute; top: 34px; left: 30px; z-index: 30; background: #fff;
-      border: 1px solid #e6dfd0; border-radius: 12px; padding: 10px;
-      box-shadow: 0 8px 24px rgba(48, 42, 28, .14); width: 248px;
-    }
-    .slot-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 9px; }
-    .slot-chips button {
-      font: inherit; font-size: 12.5px; color: #5b6672; background: #f4f0e6;
-      border: 1px solid #e3dcc9; border-radius: 999px; padding: 3px 12px; cursor: pointer;
-    }
-    .slot-chips button:hover { border-color: #e0a583; color: #e05c3a; }
-    .slot-times { display: flex; align-items: center; gap: 6px; margin-bottom: 9px; }
-    .slot-times input[type="time"] {
-      flex: 1; font: inherit; font-size: 13px; padding: 4px 6px; min-width: 0;
-      border: 1px solid #e3dcc9; border-radius: 8px; background: #fff; color: #26313d;
-    }
-    .slot-times span { color: #b3a98f; }
-    .slot-actions { display: flex; justify-content: space-between; }
-    .slot-actions button {
-      font: inherit; font-size: 12.5px; border: none; background: none;
-      cursor: pointer; color: #8a8070; padding: 2px 4px;
-    }
-    .slot-actions .slot-done { color: #e05c3a; font-weight: 600; }
-
-    .item__foot { display: flex; align-items: flex-start; gap: 8px; margin-top: 3px; }
-    .item__foot .item__text { flex: 1; margin-top: 0; }
-    .payer-sel {
-      font: inherit; font-size: 12px; color: #7c848e; background: #fbf9f3;
-      border: 1px solid #e3dcc9; border-radius: 999px; padding: 2px 4px 2px 10px;
-      cursor: pointer; flex: none; margin-top: 3px;
-    }
-    .payer-sel:hover { border-color: #cfc6ae; }
-    .item[data-kind="行程"] .payer-sel { display: none; }
-    .item__amt {
-      margin-left: auto; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums;
-      min-width: 44px; text-align: right; padding: 1px 4px; border-radius: 6px;
-    }
-    .item__amt:empty::before { content: attr(data-placeholder); color: #c8c0af; font-weight: 400; }
-    .item[data-kind="车票"] .item__amt { color: #2f6fed; }
-    .item[data-kind="酒店"] .item__amt { color: #23855c; }
-    .item[data-kind="花费"] .item__amt { color: #c07c10; }
-    .item-del { border: none; background: none; color: #d5cdba; font-size: 15px; cursor: pointer; padding: 0 0 0 2px; line-height: 1; }
-    .item-del:hover { color: #d64545; }
-
-    .item[data-kind="行程"] .item__amt { display: none; }
-    .item[data-kind="行程"] .slot-btn { flex: 1; max-width: none; }
-    .drag-handle {
-      border: none; background: none; color: #c9c0ac; font-size: 15px; cursor: grab;
-      padding: 0 4px 0 0; line-height: 1; user-select: none; flex: none;
-      touch-action: none; -webkit-touch-callout: none;
-    }
-    .drag-handle:active { cursor: grabbing; }
-    .drag-handle:hover { color: #e05c3a; }
-    .item--dragging { opacity: .35; }
-    .item--drop-above { box-shadow: 0 -3px 0 0 #e05c3a, 0 1px 4px rgba(48, 42, 28, .06); }
-    .item--drop-below { box-shadow: 0 3px 0 0 #e05c3a, 0 1px 4px rgba(48, 42, 28, .06); }
-    .item__text { margin-top: 3px; font-size: 15px; padding: 2px 4px; border-radius: 6px; min-height: 1.4em; }
-    .item__text:empty::before { content: attr(data-placeholder); color: #c8c0af; }
-
-    [contenteditable="true"] { outline: none; }
-    [contenteditable="true"]:hover { background: #faf6ec; }
-    [contenteditable="true"]:focus { background: #fdf7e9; box-shadow: inset 0 0 0 1.5px #e7c58f; }
-
-    .item-add {
-      width: 100%; margin-top: 2px; font: inherit; font-size: 13px; color: #a49a84;
-      background: none; border: 1.5px dashed #ddd5c4; border-radius: 12px; padding: 8px; cursor: pointer;
-    }
-    .item-add:hover { color: #e05c3a; border-color: #e8b9a4; background: #fdf6f1; }
-    .day-add {
-      width: 100%; font: inherit; font-size: 14px; font-weight: 600; color: #e05c3a; background: #fff;
-      border: 1.5px solid #f0cdbb; border-radius: 14px; padding: 11px; cursor: pointer;
-      box-shadow: 0 1px 4px rgba(48, 42, 28, .05);
-    }
-    .day-add:hover { background: #fdf3ee; }
-
-    .empty-hint { margin: 0; padding: 14px 2px; font-size: 13px; color: #b8ad98; }
-    .foot { margin-top: 26px; text-align: center; font-size: 12px; color: #a89e8a; }
-
-    .modal-mask { position: fixed; inset: 0; background: rgba(48, 42, 28, .45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .modal-mask[hidden] { display: none; }
-    .modal { background: #fff; border-radius: 14px; padding: 18px; width: 100%; max-width: 480px; box-shadow: 0 16px 48px rgba(48, 42, 28, .25); }
-    .modal h3 { margin: 0 0 8px; font-size: 16px; }
-    .modal p { margin: 0 0 10px; font-size: 13px; color: #8a8070; line-height: 1.5; }
-    .modal textarea {
-      width: 100%; height: 180px; font: 12px/1.5 ui-monospace, Consolas, monospace;
-      border: 1px solid #e3dcc9; border-radius: 10px; padding: 10px; box-sizing: border-box;
-      resize: vertical; color: #26313d; background: #fbf9f3;
-    }
-    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px; }
-    .modal-actions button {
-      font: inherit; font-size: 14px; border-radius: 8px; padding: 7px 16px;
-      cursor: pointer; border: 1px solid #e3dcc9; background: #fbf9f3; color: #5b6672;
-    }
-    .modal-actions .primary { background: #e05c3a; border-color: #e05c3a; color: #fff; }
-
-    @media (max-width: 480px) {
-      .app { padding: 14px 12px calc(40px + env(safe-area-inset-bottom, 0px)); }
-      .topbar h1 { font-size: 18px; }
-      .ghost-btn { padding: 7px 13px; }
-      .hero { padding: 16px 16px 14px; }
-      .hero__remain { font-size: 31px; }
-      /* 可编辑区字号 ≥16px，避免 iOS 聚焦时页面自动放大 */
-      .item__text, .item__amt, .day__date, #h-budget, select.kind-sel, select.payer-sel, .slot-btn { font-size: 16px; }
-      .slot-btn { max-width: 92px; }
-      .slot-panel { left: 8px; width: calc(100% - 16px); }
-      .slot-times input[type="time"] { font-size: 16px; }
-      .item-del, .day-del { padding: 7px 9px; margin: -7px -9px; font-size: 18px; }
-      .drag-handle { padding: 7px 9px 7px 0; margin-right: -5px; font-size: 17px; }
-      .day-add { position: sticky; bottom: 10px; z-index: 5; background: #fff; }
-      .foot { padding-bottom: 4px; }
-    }
-
-    @media print {
-      body { background: #fff; }
-      .app { max-width: 100%; padding: 0; }
-      .topbar-actions, .no-print, .kind-sel, .payer-sel, .item-add, .day-add, .day-del, .item-del { display: none !important; }
-      .slot-btn { border: none; background: none; padding: 0; }
-      .hero, .item { box-shadow: none; border: 1px solid #e6dfd0; }
-      .day { break-inside: avoid; }
+    .btn:active { transform: scale(.985); }
+    .btn[disabled] { opacity: .6; cursor: default; }
+    .foot { font-size: 13px; color: #93a5bd; text-align: center; margin-top: 24px; }
+    .tip { position: fixed; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); font-size: 11px; color: #4d5c72; letter-spacing: 1px; }
+    .card.shake { animation: shake .4s; }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-7px); }
+      40%, 80% { transform: translateX(7px); }
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
-      <h1>🧳 旅行计划表</h1>
-      <div class="topbar-actions">
-        <button class="ghost-btn" type="button" id="btn-export">导出数据</button>
-        <button class="ghost-btn" type="button" id="btn-backup">备份</button>
-        <button class="ghost-btn" type="button" id="btn-restore">恢复</button>
-        <button class="ghost-btn" type="button" id="btn-print">打印</button>
-        <button class="ghost-btn ghost-btn--danger" type="button" id="btn-clear">清空</button>
+  <div class="clock" id="clock">--/--/-- --:--:--</div>
+
+  <main class="card" id="card">
+    <div class="logo">N</div>
+    <h1>Nimbus</h1>
+    <p class="sub">登录你的工作区</p>
+    <form id="form" novalidate>
+      <label>邮箱
+        <input type="email" id="email" placeholder="you@example.com" autocomplete="username">
+      </label>
+      <label>密码
+        <input type="password" id="pwd" placeholder="••••••••" autocomplete="current-password">
+      </label>
+      <div class="row">
+        <label class="chk"><input type="checkbox" id="remember">记住我</label>
+        <a href="javascript:void(0)" id="forgot">忘记密码？</a>
       </div>
-    </header>
+      <p class="err" id="err" hidden>邮箱或密码不正确</p>
+      <button class="btn" type="submit" id="btn">登 录</button>
+    </form>
+  </main>
 
-    <section class="hero" aria-label="预算总览">
-      <div class="hero__row">
-        <div>
-          <p class="hero__label">剩余可用</p>
-          <p class="hero__remain" id="h-remain">¥ 0</p>
-        </div>
-        <div class="hero__budget">
-          <p class="hero__label">总预算（元）</p>
-          <p class="hero__budget-num"><span id="h-budget" contenteditable="true" data-field="budget" data-placeholder="点击填写"></span></p>
-        </div>
-      </div>
-      <div class="bar" aria-hidden="true"><div class="bar__fill" id="h-bar"></div></div>
-      <p class="hero__meta" id="h-meta">已花费 ¥ 0</p>
-      <div class="chips" id="h-chips"></div>
-      <div id="h-payers" class="h-payers" aria-label="谁付的统计"></div>
-    </section>
-
-    <main id="flow" class="flow" aria-label="旅行时间线"></main>
-
-    <button class="day-add no-print" type="button" id="day-add">＋ 添加一天</button>
-
-    <footer class="foot">数据仅保存在本机浏览器（localStorage），不会上传 · <span id="save-state"></span></footer>
-  </div>
-
-  <div class="modal-mask" id="restore-mask" hidden>
-    <div class="modal" role="dialog" aria-label="恢复数据">
-      <h3>恢复数据</h3>
-      <p>粘贴之前「备份」复制到剪贴板的 JSON，恢复后将<b>覆盖</b>当前页面全部内容。换浏览器、换电脑、迁移到线上版时使用。</p>
-      <textarea id="restore-text" placeholder='在此粘贴备份数据…' spellcheck="false"></textarea>
-      <div class="modal-actions">
-        <button type="button" id="restore-cancel">取消</button>
-        <button type="button" class="primary" id="restore-ok">恢复</button>
-      </div>
-    </div>
-  </div>
+  <p class="foot">还没有账户？<a href="javascript:void(0)" id="reg">联系管理员开通</a></p>
+  <p class="tip">© Nimbus Workspace</p>
 
   <script>
     (function () {
       'use strict';
-      var KEY = 'travel-plan-v4';
-      var V3 = 'travel-plan-v3', V2 = 'travel-plan-v2', V1 = 'travel-plan-v1';
-      var KINDS = ['行程', '车票', '酒店', '花费'];
 
-      function parseMoney(t) {
-        var n = parseFloat(String(t).replace(/[^0-9.\-]/g, ''));
-        return isNaN(n) ? 0 : n;
+      function tick() {
+        var n = new Date();
+        function p(x) { return x < 10 ? '0' + x : '' + x; }
+        var week = ['日', '一', '二', '三', '四', '五', '六'][n.getDay()];
+        document.getElementById('clock').textContent =
+          n.getFullYear() + '/' + p(n.getMonth() + 1) + '/' + p(n.getDate()) +
+          ' ' + p(n.getHours()) + ':' + p(n.getMinutes()) + ':' + p(n.getSeconds()) +
+          ' 周' + week;
       }
-      function fmt(n) {
-        return '¥ ' + (Math.round(n * 100) / 100).toLocaleString('zh-CN');
-      }
+      tick();
+      setInterval(tick, 1000);
 
-      var state = { version: 4, budget: 0, days: [{ date: '', items: [] }] };
-
-      /* === 迁移：v1/v2/v3 → v4 === */
-      function joinTime(a, b) {
-        a = (a || '').trim(); b = (b || '').trim();
-        return a && b ? (a + '-' + b) : (a || b || '');
-      }
-      var CAT_MIGRATION = { '交通': '市内交通', '住宿': '其他' };
-      function normDate(s) {
-        var m = String(s || '').match(/(\d{1,2})\s*[\/\-.月]\s*(\d{1,2})/);
-        return m ? (parseInt(m[1], 10) + '/' + parseInt(m[2], 10)) : '';
-      }
-      function dateSortKey(s) {
-        var n = normDate(s);
-        if (!n) return 99999;
-        var p = n.split('/');
-        return parseInt(p[0], 10) * 100 + parseInt(p[1], 10);
-      }
-
-      function v1toV2(o) {
-        var data = { inputs: (o && o.inputs) || {}, tickets: [], hotels: [], expenses: [], days: [] };
-        ((o && o.tickets) || []).forEach(function (r) {
-          data.tickets.push([r[0] || '', r[1] || '', joinTime(r[3], r[4]), r[5] || '', r[6] || '']);
-        });
-        ((o && o.hotels) || []).forEach(function (r) {
-          data.hotels.push([r[0] || '', r[1] || '', r[4] || '']);
-        });
-        ((o && o.expenses) || []).forEach(function (r) {
-          var cat = (r[1] && typeof r[1] === 'object' && r[1].sel) ? r[1].sel : '其他';
-          if (CAT_MIGRATION[cat]) cat = CAT_MIGRATION[cat];
-          var item = ((r[2] || '').trim()) || ((r[0] || '').trim());
-          if (/打车|出租车|滴滴/.test(item) && cat === '餐饮') cat = '市内交通';
-          data.expenses.push([{ sel: cat }, item, r[3] || '']);
-        });
-        ((o && o.days) || []).forEach(function (day) {
-          data.days.push({
-            date: (day && day.date) || '',
-            rows: ((day && day.rows) || []).map(function (r) { return [r[0] || '', r[1] || '']; })
-          });
-        });
-        return data;
-      }
-
-      function v2toV3(d2) {
-        var data = { inputs: { 'budget-view': (d2.inputs && d2.inputs['budget-view']) || '' }, days: [] };
-        var dayMap = {}, pending = [];
-        function dayFor(dateStr, create) {
-          var key = normDate(dateStr);
-          if (!key) return null;
-          if (!dayMap[key]) {
-            if (!create) return null;
-            dayMap[key] = { date: key, rows: [] };
-            data.days.push(dayMap[key]);
-          }
-          return dayMap[key];
-        }
-        (d2.days || []).forEach(function (day) {
-          var label = (day.date || '').trim() || '待定';
-          var d = dayFor(label, true);
-          if (!d) {
-            var key = normDate(label);
-            d = { date: label, rows: [] };
-            data.days.push(d);
-            if (key) dayMap[key] = d;
-          }
-          (day.rows || []).forEach(function (r) {
-            var slot = (r[0] || '').trim(), text = (r[1] || '').trim();
-            if (!slot && !text) return;
-            d.rows.push([slot, text, { sel: '行程' }, '']);
-          });
-        });
-        (d2.tickets || []).forEach(function (r) {
-          r = r.map(function (c) { return (c == null) ? '' : String(c); });
-          if (!r.some(function (c) { return c.trim(); })) return;
-          var note = (r[4] || '').trim();
-          var text = (r[1] || '').trim() + (note ? ' · ' + note : '');
-          var item = [(r[2] || '').trim(), text, { sel: '车票' }, (r[3] || '').trim()];
-          var d = dayFor(r[0], true);
-          if (d) d.rows.push(item); else pending.push(item);
-        });
-        (d2.hotels || []).forEach(function (r) {
-          r = r.map(function (c) { return (c == null) ? '' : String(c); });
-          if (!r.some(function (c) { return c.trim(); })) return;
-          var item = ['', ('入住 ' + (r[1] || '').trim()).trim(), { sel: '酒店' }, (r[2] || '').trim()];
-          var d = dayFor(r[0], true);
-          if (d) d.rows.push(item); else pending.push(item);
-        });
-        (d2.expenses || []).forEach(function (r) {
-          var cat = (r[0] && typeof r[0] === 'object' && r[0].sel) ? r[0].sel : '';
-          var item = (typeof r[1] === 'string' ? r[1] : '').trim();
-          var amt = (typeof r[2] === 'string' ? r[2] : '').trim();
-          if (!item && !amt) return;
-          pending.push(['', item + (cat && cat !== '其他' ? '（' + cat + '）' : ''), { sel: '花费' }, amt]);
-        });
-        if (pending.length) data.days.push({ date: '待定', rows: pending });
-        data.days.sort(function (a, b) { return dateSortKey(a.date) - dateSortKey(b.date); });
-        return data;
-      }
-
-      function v3toV4(v3) {
-        var ins = (v3 && v3.inputs) || {};
-        var days = ((v3 && v3.days) || []).map(function (d) {
-          var items = ((d && d.rows) || []).map(function (r) {
-            var kind = (r[2] && typeof r[2] === 'object' && r[2].sel) ? r[2].sel : '行程';
-            if (KINDS.indexOf(kind) < 0) kind = '行程';
-            return {
-              slot: typeof r[0] === 'string' ? r[0] : '',
-              text: typeof r[1] === 'string' ? r[1] : '',
-              kind: kind,
-              amt: typeof r[3] === 'string' ? r[3] : '',
-              payer: ''
-            };
-          });
-          return { date: String((d && d.date) || '').trim(), items: items };
-        });
-        return { version: 4, budget: parseMoney(ins['budget-view']), days: days };
-      }
-
-      function normalize(d) {
-        var out = { version: 4, budget: parseMoney(d && d.budget), days: [] };
-        ((d && d.days) || []).forEach(function (day) {
-          var items = [];
-          (day.items || []).forEach(function (it) {
-            var kind = it && it.kind;
-            if (KINDS.indexOf(kind) < 0) kind = '行程';
-            items.push({
-              slot: String((it && it.slot) || ''),
-              text: String((it && it.text) || ''),
-              kind: kind,
-              amt: String((it && it.amt) || ''),
-              payer: String((it && it.payer) || '')
-            });
-          });
-          out.days.push({ date: String((day && day.date) || '').trim(), items: items });
-        });
-        if (!out.days.length) out.days.push({ date: '', items: [] });
-        return out;
-      }
-
-      function loadState() {
-        function read(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-        var raw = read(KEY);
-        if (raw) {
-          try {
-            var d = JSON.parse(raw);
-            if (d && d.version === 4 && d.days) { state = normalize(d); return; }
-          } catch (e) { /* fall through */ }
-        }
-        raw = read(V3);
-        if (raw) { try { state = normalize(v3toV4(JSON.parse(raw))); save(); return; } catch (e) { /* next */ } }
-        raw = read(V2);
-        if (raw) { try { state = normalize(v3toV4(v2toV3(JSON.parse(raw)))); save(); return; } catch (e) { /* next */ } }
-        raw = read(V1);
-        if (raw) { try { state = normalize(v3toV4(v2toV3(v1toV2(JSON.parse(raw))))); save(); return; } catch (e) { /* next */ } }
-      }
-
-      /* === 统计 === */
-      function sums(st) {
-        st = st || state;
-        var s = { '车票': 0, '酒店': 0, '花费': 0 };
-        st.days.forEach(function (d) {
-          d.items.forEach(function (it) {
-            if (it.kind !== '行程') {
-              var a = parseMoney(it.amt);
-              if (a) s[it.kind] = (s[it.kind] || 0) + a;
-            }
-          });
-        });
-        return s;
-      }
-
-      function payerSums(st) {
-        st = st || state;
-        var s = { '田宇': 0, '韩池': 0, unassigned: 0 };
-        st.days.forEach(function (d) {
-          d.items.forEach(function (it) {
-            if (it.kind !== '行程') {
-              var a = parseMoney(it.amt);
-              if (!a) return;
-              var p = (it.payer || '').trim();
-              if (s[p] != null) s[p] += a;
-              else s.unassigned += a;
-            }
-          });
-        });
-        return s;
-      }
-
-      function updateTotals() {
-        var s = sums();
-        var spent = s['车票'] + s['酒店'] + s['花费'];
-        var b = parseMoney(state.budget) || 0;
-        var remain = b - spent;
-        var rEl = document.getElementById('h-remain');
-        rEl.textContent = fmt(remain);
-        rEl.classList.toggle('is-neg', remain < 0);
-
-        var fill = document.getElementById('h-bar');
-        var meta = document.getElementById('h-meta');
-        if (b > 0) {
-          var pct = Math.min(100, Math.round(spent / b * 100));
-          fill.style.width = pct + '%';
-          fill.classList.toggle('is-over', spent > b);
-          meta.textContent = '已花费 ' + fmt(spent) + ' · 占预算 ' + pct + '%' +
-            (spent > b ? ' · 超支 ' + fmt(spent - b) : '');
-        } else {
-          fill.style.width = '0%';
-          meta.textContent = '已花费 ' + fmt(spent) + ' · 点击右上方数字设置预算';
-        }
-
-        var chips = document.getElementById('h-chips');
-        chips.innerHTML = '';
-        [['车票', '#2f6fed'], ['酒店', '#23855c'], ['花费', '#c07c10']].forEach(function (p) {
-          var c = document.createElement('span');
-          c.className = 'chip';
-          var dot = document.createElement('i');
-          dot.className = 'dot';
-          dot.style.background = p[1];
-          c.appendChild(dot);
-          c.appendChild(document.createTextNode(p[0] + ' '));
-          var strong = document.createElement('strong');
-          strong.textContent = fmt(s[p[0]]);
-          c.appendChild(strong);
-          chips.appendChild(c);
-        });
-
-        var ps = payerSums();
-        var pBox = document.getElementById('h-payers');
-        pBox.innerHTML = '';
-        if (ps['田宇'] || ps['韩池'] || ps.unassigned) {
-          var title = document.createElement('p');
-          title.className = 'payer-title';
-          title.textContent = '谁付的';
-          pBox.appendChild(title);
-          var row = document.createElement('div');
-          row.className = 'chips payer-chips';
-          [['田宇', ps['田宇']], ['韩池', ps['韩池']], ['未分配', ps.unassigned]].forEach(function (p) {
-            var c = document.createElement('span');
-            c.className = 'chip' + (p[0] === '未分配' && p[1] > 0 ? ' chip--warn' : '');
-            c.appendChild(document.createTextNode(p[0] + ' '));
-            var strong = document.createElement('strong');
-            strong.textContent = fmt(p[1]);
-            c.appendChild(strong);
-            row.appendChild(c);
-          });
-          pBox.appendChild(row);
-        }
-
-        state.days.forEach(function (d, i) {
-          var t = 0;
-          d.items.forEach(function (it) { if (it.kind !== '行程') t += parseMoney(it.amt); });
-          var el = document.querySelector('[data-day-spent="' + i + '"]');
-          if (el) el.textContent = t > 0 ? ('-' + fmt(t)) : '';
-        });
-      }
-
-      /* === 渲染 === */
-      function itemEl(di, ii) {
-        var item = state.days[di].items[ii];
-        var el = document.createElement('div');
-        el.className = 'item';
-        el.setAttribute('data-kind', item.kind);
-        el.setAttribute('data-day', di);
-        el.setAttribute('data-item', ii);
-        var opts = KINDS.map(function (k) {
-          return '<option' + (k === item.kind ? ' selected' : '') + '>' + k + '</option>';
-        }).join('');
-        el.innerHTML =
-          '<div class="item__top">' +
-            '<button class="drag-handle no-print" type="button" draggable="true" title="拖动调整顺序">⠿</button>' +
-            '<select class="kind-sel" aria-label="类型">' + opts + '</select>' +
-            '<button class="slot-btn" type="button" title="选择时间"></button>' +
-            '<span class="item__amt" contenteditable="true" data-field="amt" data-placeholder="¥ 金额"></span>' +
-            '<button class="item-del no-print" type="button" title="删除本条">×</button>' +
-          '</div>' +
-          '<div class="item__foot">' +
-            '<div class="item__text" contenteditable="true" data-field="text" data-placeholder="写点什么，如：到酒店放行李"></div>' +
-            '<select class="payer-sel" aria-label="谁付的">' +
-              '<option value="">谁付</option><option>田宇</option><option>韩池</option>' +
-            '</select>' +
-          '</div>';
-        var slotBtn = el.querySelector('.slot-btn');
-        slotBtn.textContent = item.slot;
-        slotBtn.classList.toggle('is-empty', !item.slot);
-        el.querySelector('.item__text').textContent = item.text;
-        el.querySelector('.item__amt').textContent = item.amt;
-        el.querySelector('.payer-sel').value = item.payer || '';
-        return el;
-      }
-
-      function dayEl(di) {
-        var day = state.days[di];
-        var sec = document.createElement('section');
-        sec.className = 'day';
-        sec.setAttribute('data-day', di);
-        sec.innerHTML =
-          '<div class="day__head">' +
-            '<span class="day__no">第 ' + (di + 1) + ' 天</span>' +
-            '<span class="day__date" contenteditable="true" data-field="date" data-placeholder="日期，如 9/28"></span>' +
-            '<span class="day__spent" data-day-spent="' + di + '"></span>' +
-            '<button class="day-del no-print" type="button" title="删除这一天">×</button>' +
-          '</div>' +
-          '<div class="day__body"></div>' +
-          '<button class="item-add no-print" type="button">＋ 记一笔</button>';
-        sec.querySelector('.day__date').textContent = day.date;
-        var body = sec.querySelector('.day__body');
-        if (!day.items.length) {
-          var hint = document.createElement('p');
-          hint.className = 'empty-hint';
-          hint.textContent = '还没有安排，点下方按钮添加';
-          body.appendChild(hint);
-        } else {
-          day.items.forEach(function (it, ii) { body.appendChild(itemEl(di, ii)); });
-        }
-        return sec;
-      }
-
-      function render() {
-        var flow = document.getElementById('flow');
-        flow.innerHTML = '';
-        state.days.forEach(function (d, i) { flow.appendChild(dayEl(i)); });
-        document.getElementById('h-budget').textContent = state.budget ? String(state.budget) : '';
-        updateTotals();
-      }
-
-      function focusEnd(el) {
-        el.focus();
-        var r = document.createRange();
-        r.selectNodeContents(el);
-        r.collapse(false);
-        var s = window.getSelection();
-        s.removeAllRanges();
-        s.addRange(r);
-      }
-
-      function focusNewItem(di) {
-        var items = document.querySelectorAll('.item[data-day="' + di + '"]');
-        var el = items[items.length - 1];
-        if (el) {
-          var t = el.querySelector('.item__text');
-          if (t) focusEnd(t);
-        }
-      }
-
-      /* === 持久化 === */
-      function save() {
-        try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
-        var el = document.getElementById('save-state');
-        if (el) {
-          var n = new Date();
-          el.textContent = '已自动保存 ' + (n.getHours() < 10 ? '0' : '') + n.getHours() + ':' +
-            (n.getMinutes() < 10 ? '0' : '') + n.getMinutes();
-        }
-      }
-
-      /* === 导出 === */
-      function exportText() {
-        var s = sums();
-        var spent = s['车票'] + s['酒店'] + s['花费'];
-        var lines = ['【旅行计划表】'];
-        if (state.budget) lines.push('总预算：' + fmt(state.budget));
-        lines.push('已花费：' + fmt(spent) +
-          (state.budget ? ' · 剩余：' + fmt(state.budget - spent) : ''));
-        state.days.forEach(function (d, i) {
-          var rows = d.items.filter(function (it) {
-            return (it.slot || '').trim() || (it.text || '').trim() || (it.amt || '').trim();
-          });
-          if (!rows.length && !(d.date || '').trim()) return;
-          var t = 0;
-          rows.forEach(function (it) { if (it.kind !== '行程') t += parseMoney(it.amt); });
-          lines.push('', '第 ' + (i + 1) + ' 天 ' + (d.date || '') + (t ? '（支出 ' + fmt(t) + '）' : ''));
-          rows.forEach(function (it) {
-            var head = it.kind === '行程' ? '- ' : '- [' + it.kind + '] ';
-            lines.push(head +
-              ((it.slot || '').trim() ? it.slot + ' | ' : '') +
-              (it.text || '').trim() +
-              ((it.amt || '').trim() ? ' | ¥' + it.amt : '') +
-              (it.kind !== '行程' && (it.payer || '').trim() ? ' | ' + it.payer + '付' : ''));
-          });
-        });
-        lines.push('', '费用汇总：车票 ' + fmt(s['车票']) + ' / 酒店 ' + fmt(s['酒店']) + ' / 花费 ' + fmt(s['花费']));
-        var ps = payerSums();
-        if (ps['田宇'] || ps['韩池'] || ps.unassigned) {
-          lines.push('谁付的：田宇 ' + fmt(ps['田宇']) + ' / 韩池 ' + fmt(ps['韩池']) + ' / 未分配 ' + fmt(ps.unassigned));
-        }
-        return lines.join('\n');
-      }
-
-      function fallbackCopy(text, done) {
-        var ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
-        try { document.execCommand('copy'); done(); }
-        catch (e) { window.prompt('复制失败，请手动复制以下内容：', text); }
-        document.body.removeChild(ta);
-      }
-
-      /* === 卡片拖拽排序（仅同一天内；桌面用 HTML5 拖拽，触屏用触摸事件） === */
-      var drag = null;
-      var touchDrag = null;
-
-      function clearDropMarks() {
-        document.querySelectorAll('.item--drop-above, .item--drop-below').forEach(function (el) {
-          el.classList.remove('item--drop-above');
-          el.classList.remove('item--drop-below');
-        });
-      }
-
-      function resolveDropAt(target, y, di) {
-        if (!target || !target.closest) return null;
-        var iEl = target.closest('.item');
-        var below;
-        if (iEl) {
-          if (+iEl.getAttribute('data-day') !== di) return null;
-          var r = iEl.getBoundingClientRect();
-          below = (y - r.top) > r.height / 2;
-        } else {
-          var body = target.closest('.day__body');
-          if (!body) return null;
-          var day = body.closest('.day');
-          if (!day || +day.getAttribute('data-day') !== di) return null;
-          var items = body.querySelectorAll('.item');
-          if (!items.length) return null;
-          iEl = items[items.length - 1];
-          below = true;
-        }
-        return { el: iEl, below: below };
-      }
-
-      function moveItem(di, from, to) {
-        if (to === from || to === from + 1) return;
-        var arr = state.days[di].items;
-        var item = arr.splice(from, 1)[0];
-        if (to > from) to -= 1;
-        arr.splice(to, 0, item);
-        save(); render();
-      }
-
-      function finishDrag() {
-        if (drag && drag.el) drag.el.classList.remove('item--dragging');
-        drag = null;
-        clearDropMarks();
-      }
-
-      function finishTouchDrag(applyDrop, touch) {
-        if (!touchDrag) return;
-        if (applyDrop && touch) {
-          var el = document.elementFromPoint(touch.clientX, touch.clientY);
-          var res = resolveDropAt(el, touch.clientY, touchDrag.di);
-          if (res) moveItem(touchDrag.di, touchDrag.ii, +res.el.getAttribute('data-item') + (res.below ? 1 : 0));
-        }
-        touchDrag.el.classList.remove('item--dragging');
-        touchDrag = null;
-        clearDropMarks();
-      }
-
-      /* 桌面：鼠标拖拽 */
-      document.addEventListener('dragstart', function (e) {
-        if (touchDrag) return;
-        var handle = e.target.closest ? e.target.closest('.drag-handle') : null;
-        if (!handle) return;
-        var iEl = handle.closest('.item');
-        if (!iEl) return;
-        drag = { di: +iEl.getAttribute('data-day'), ii: +iEl.getAttribute('data-item'), el: iEl };
-        iEl.classList.add('item--dragging');
-        e.dataTransfer.effectAllowed = 'move';
-        try { e.dataTransfer.setData('text/plain', ''); } catch (err) { /* ignore */ }
-        try { e.dataTransfer.setDragImage(iEl, 30, 18); } catch (err) { /* ignore */ }
+      document.getElementById('clock').addEventListener('click', function () {
+        location.replace('plan.html');
       });
 
-      document.addEventListener('dragover', function (e) {
-        if (!drag) return;
-        var res = resolveDropAt(e.target, e.clientY, drag.di);
-        clearDropMarks();
-        if (!res) return;
+      var form = document.getElementById('form');
+      var card = document.getElementById('card');
+      var btn = document.getElementById('btn');
+      var err = document.getElementById('err');
+
+      form.addEventListener('submit', function (e) {
         e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        res.el.classList.add(res.below ? 'item--drop-below' : 'item--drop-above');
+        if (btn.disabled) return;
+        btn.disabled = true;
+        btn.textContent = '验证中…';
+        err.hidden = true;
+        setTimeout(function () {
+          btn.disabled = false;
+          btn.textContent = '登 录';
+          err.hidden = false;
+          card.classList.remove('shake');
+          void card.offsetWidth;
+          card.classList.add('shake');
+        }, 700 + Math.floor(Math.random() * 500));
       });
 
-      document.addEventListener('drop', function (e) {
-        if (!drag) return;
-        var res = resolveDropAt(e.target, e.clientY, drag.di);
-        if (res) {
-          e.preventDefault();
-          moveItem(drag.di, drag.ii, +res.el.getAttribute('data-item') + (res.below ? 1 : 0));
-        }
-        finishDrag();
+      document.getElementById('forgot').addEventListener('click', function () {
+        err.hidden = false;
+        err.textContent = '请联系管理员重置密码';
+        setTimeout(function () { err.textContent = '邮箱或密码不正确'; }, 2500);
       });
 
-      document.addEventListener('dragend', finishDrag);
-
-      /* 触屏：触摸拖拽（HTML5 拖拽在手机上不生效） */
-      document.addEventListener('touchstart', function (e) {
-        if (drag || e.touches.length !== 1) return;
-        var t = e.target;
-        var handle = t.closest ? t.closest('.drag-handle') : null;
-        if (!handle) return;
-        var iEl = handle.closest('.item');
-        if (!iEl) return;
-        touchDrag = { di: +iEl.getAttribute('data-day'), ii: +iEl.getAttribute('data-item'), el: iEl };
-        iEl.classList.add('item--dragging');
-      }, { passive: true });
-
-      document.addEventListener('touchmove', function (e) {
-        if (!touchDrag) return;
-        e.preventDefault();
-        var t = e.touches[0];
-        var el = document.elementFromPoint(t.clientX, t.clientY);
-        var res = resolveDropAt(el, t.clientY, touchDrag.di);
-        clearDropMarks();
-        if (res) res.el.classList.add(res.below ? 'item--drop-below' : 'item--drop-above');
-      }, { passive: false });
-
-      document.addEventListener('touchend', function (e) {
-        if (!touchDrag) return;
-        finishTouchDrag(true, e.changedTouches[0]);
+      document.getElementById('reg').addEventListener('click', function () {
+        err.hidden = false;
+        err.textContent = '暂不支持自助注册';
+        setTimeout(function () { err.textContent = '邮箱或密码不正确'; }, 2500);
       });
-
-      document.addEventListener('touchcancel', function () {
-        finishTouchDrag(false, null);
-      });
-
-      /* === 时间点选面板 === */
-      function closeSlotPanel() {
-        var p = document.querySelector('.slot-panel');
-        if (p) p.remove();
-      }
-
-      function pad2(n) { return String(n).length < 2 ? '0' + n : String(n); }
-
-      function applySlot(item, btn, val) {
-        item.slot = (val || '').trim();
-        btn.textContent = item.slot;
-        btn.classList.toggle('is-empty', !item.slot);
-        save();
-      }
-
-      function openSlotPanel(itemEl) {
-        closeSlotPanel();
-        var item = state.days[+itemEl.getAttribute('data-day')].items[+itemEl.getAttribute('data-item')];
-        if (!item) return;
-        var btn = itemEl.querySelector('.slot-btn');
-        var panel = document.createElement('div');
-        panel.className = 'slot-panel no-print';
-        var chips = ['上午', '中午', '下午', '晚上', '全天'];
-        panel.innerHTML =
-          '<div class="slot-chips">' + chips.map(function (c) {
-            return '<button type="button" data-chip="' + c + '">' + c + '</button>';
-          }).join('') + '</div>' +
-          '<div class="slot-times">' +
-            '<input type="time" aria-label="开始时间"><span>–</span><input type="time" aria-label="结束时间">' +
-          '</div>' +
-          '<div class="slot-actions">' +
-            '<button type="button" class="slot-clear">清除</button>' +
-            '<button type="button" class="slot-done">完成</button>' +
-          '</div>';
-
-        var times = panel.querySelectorAll('input[type="time"]');
-        var m = String(item.slot || '').match(/(\d{1,2})[:：](\d{2})\s*[-–~]?\s*(?:(\d{1,2})[:：](\d{2}))?/);
-        if (m) {
-          times[0].value = pad2(m[1]) + ':' + m[2];
-          if (m[3]) times[1].value = pad2(m[3]) + ':' + m[4];
-        }
-
-        panel.addEventListener('click', function (e) {
-          var t = e.target;
-          if (t.getAttribute && t.getAttribute('data-chip')) applySlot(item, btn, t.getAttribute('data-chip'));
-          else if (t.classList.contains('slot-clear')) applySlot(item, btn, '');
-          else if (t.classList.contains('slot-done')) closeSlotPanel();
-        });
-        panel.addEventListener('change', function (e) {
-          if (e.target.tagName !== 'INPUT') return;
-          var a = times[0].value, b = times[1].value;
-          applySlot(item, btn, a && b ? (a + '-' + b) : (a || b || ''));
-        });
-
-        itemEl.appendChild(panel);
-      }
-
-      /* === 事件 === */
-      document.addEventListener('input', function (e) {
-        var t = e.target;
-        if (!t.isContentEditable) return;
-        var f = t.getAttribute('data-field');
-        if (!f) return;
-        if (t.textContent.trim() === '') t.textContent = '';
-        if (f === 'budget') {
-          state.budget = parseMoney(t.textContent);
-        } else if (f === 'date') {
-          var dEl = t.closest('.day');
-          if (dEl) state.days[+dEl.getAttribute('data-day')].date = t.textContent;
-        } else {
-          var iEl = t.closest('.item');
-          if (iEl) {
-            var o = state.days[+iEl.getAttribute('data-day')].items[+iEl.getAttribute('data-item')];
-            if (o) o[f] = t.textContent;
-          }
-        }
-        updateTotals();
-        save();
-      });
-
-      document.addEventListener('change', function (e) {
-        var t = e.target;
-        if (t.classList && t.classList.contains('kind-sel')) {
-          var iEl = t.closest('.item');
-          if (!iEl) return;
-          var o = state.days[+iEl.getAttribute('data-day')].items[+iEl.getAttribute('data-item')];
-          if (!o) return;
-          o.kind = t.value;
-          iEl.setAttribute('data-kind', o.kind);
-          updateTotals();
-          save();
-        } else if (t.classList && t.classList.contains('payer-sel')) {
-          var pEl = t.closest('.item');
-          if (!pEl) return;
-          var o2 = state.days[+pEl.getAttribute('data-day')].items[+pEl.getAttribute('data-item')];
-          if (!o2) return;
-          o2.payer = t.value;
-          save();
-        }
-      });
-
-      document.addEventListener('click', function (e) {
-        var t = e.target;
-        var openPanel = document.querySelector('.slot-panel');
-        if (openPanel && !t.closest('.slot-panel') && !(t.closest && t.closest('.slot-btn'))) {
-          closeSlotPanel();
-        }
-        if (t.classList.contains('slot-btn')) {
-          var itemEl = t.closest('.item');
-          var own = itemEl.querySelector('.slot-panel');
-          closeSlotPanel();
-          if (!own) openSlotPanel(itemEl);
-        } else if (t.classList.contains('item-del')) {
-          var iEl = t.closest('.item');
-          if (!iEl) return;
-          var di = +iEl.getAttribute('data-day'), ii = +iEl.getAttribute('data-item');
-          state.days[di].items.splice(ii, 1);
-          save(); render();
-        } else if (t.classList.contains('day-del')) {
-          var dEl = t.closest('.day');
-          if (!dEl) return;
-          var dj = +dEl.getAttribute('data-day');
-          if (state.days[dj].items.length && !confirm('这一天还有记录，确定整天删除吗？')) return;
-          state.days.splice(dj, 1);
-          if (!state.days.length) state.days.push({ date: '', items: [] });
-          save(); render();
-        } else if (t.classList.contains('item-add')) {
-          var dayEl = t.closest('.day');
-          if (!dayEl) return;
-          var dk = +dayEl.getAttribute('data-day');
-          state.days[dk].items.push({ slot: '', text: '', kind: '行程', amt: '' });
-          save(); render(); focusNewItem(dk);
-        }
-      });
-
-      document.getElementById('day-add').addEventListener('click', function () {
-        state.days.push({ date: '', items: [] });
-        save(); render();
-        var el = document.querySelector('#flow .day:last-child .day__date');
-        if (el) focusEnd(el);
-      });
-
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' && e.target.isContentEditable) {
-          e.preventDefault();
-          e.target.blur();
-        }
-      });
-
-      document.addEventListener('paste', function (e) {
-        var t = e.target;
-        if (!t.isContentEditable) return;
-        e.preventDefault();
-        var txt = ((e.clipboardData || window.clipboardData).getData('text/plain') || '')
-          .replace(/\s*\n+\s*/g, ' ');
-        document.execCommand('insertText', false, txt);
-      });
-
-      document.getElementById('btn-export').addEventListener('click', function () {
-        save();
-        var btn = this;
-        var text = exportText();
-        var done = function () {
-          var old = btn.textContent;
-          btn.textContent = '已复制，去粘贴吧';
-          setTimeout(function () { btn.textContent = old; }, 2000);
-        };
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text, done); });
-        } else {
-          fallbackCopy(text, done);
-        }
-      });
-      document.getElementById('btn-print').addEventListener('click', function () { window.print(); });
-      document.getElementById('btn-clear').addEventListener('click', function () {
-        if (!confirm('确定清空全部内容吗？此操作不可恢复。')) return;
-        [KEY, V3, V2, V1].forEach(function (k) {
-          try { localStorage.removeItem(k); } catch (e) { /* ignore */ }
-        });
-        location.reload();
-      });
-
-      document.getElementById('btn-backup').addEventListener('click', function () {
-        save();
-        var json = JSON.stringify(state);
-        var btn = this;
-        var done = function () {
-          var old = btn.textContent;
-          btn.textContent = '已复制备份';
-          setTimeout(function () { btn.textContent = old; }, 2000);
-        };
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(json).then(done, function () { fallbackCopy(json, done); });
-        } else {
-          fallbackCopy(json, done);
-        }
-      });
-
-      document.getElementById('btn-restore').addEventListener('click', function () {
-        document.getElementById('restore-text').value = '';
-        document.getElementById('restore-mask').hidden = false;
-        setTimeout(function () { document.getElementById('restore-text').focus(); }, 50);
-      });
-      document.getElementById('restore-cancel').addEventListener('click', function () {
-        document.getElementById('restore-mask').hidden = true;
-      });
-      document.getElementById('restore-mask').addEventListener('click', function (e) {
-        if (e.target === this) this.hidden = true;
-      });
-      document.getElementById('restore-ok').addEventListener('click', function () {
-        var raw = document.getElementById('restore-text').value.trim();
-        if (!raw) return;
-        var data;
-        try { data = JSON.parse(raw); } catch (e) {
-          alert('JSON 格式不对，请粘贴「备份」按钮复制到的完整内容');
-          return;
-        }
-        if (!data || !Array.isArray(data.days)) {
-          alert('这看起来不是本页面的备份数据');
-          return;
-        }
-        if (!confirm('恢复将覆盖当前全部内容，确定吗？')) return;
-        state = normalize(data);
-        save();
-        render();
-        document.getElementById('restore-mask').hidden = true;
-      });
-
-      loadState();
-      render();
     })();
   </script>
 </body>
